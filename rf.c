@@ -1,12 +1,19 @@
 /*
-Random notes up heres
+Random notes up heres:
+
+When in send mode, rf module just does stuff whenever told.
+In receive mode, rf module always listens.
 */
 
-struct ImageHandler{
-    int imageCursor; // byte or bit position in image
-};
+// initializes the module, and returns status code
+int initialize(){
 
-struct MessageQueue{
-    int nMessages; // number of messages in the queue
-    struct ImageHandler* imageHandler;
-};
+}
+
+// constantly running loop to receive data
+// should be ran in different thread if can receive and send simultaniously
+void _receive(){
+    while(doReceive){
+        // get stuff
+    }
+}
