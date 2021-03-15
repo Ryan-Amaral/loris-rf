@@ -1,9 +1,11 @@
 /*
 rf_send.h
 
-purpose: A continually running server for sending images and other messages
+Purpose: A continually running server for sending images and other messages
 down to the ground station, based on multiple queues based on priority.
 Simply sits idly by until told it is able to send stuff.
+
+Author: Ryan Amaral
 */
 
 #ifndef CUBESAT_RF_SEND_H
