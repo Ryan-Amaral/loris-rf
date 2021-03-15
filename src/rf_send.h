@@ -18,12 +18,12 @@ struct QueueItem{
     // what byte we are on in the message
     int cursor;
     // name of file if image item, otherwise the literal message to send
-    string data;
+    std::string data;
 };
 
-// Initialize the sending server.
+// Initialize and runs the sending server.
 // args: nQueues, chunkSize
-void InitRfSend(const uint8_t, const uint8_t);
+void InitRfSend(const uint8_t, const uint32_t);
 
 // Send the provided chunk of data.
 // args: data (bytes), length of bytes array
@@ -31,6 +31,6 @@ bool SendChunk(const uint8_t&, const uint32_t);
 
 // Adds data to a queue of the specified type, data and priority.
 // args: type, data, priority level
-void AddToQueue(bool, string, const uint8_t);
+void AddToQueue(bool, std::string, const uint8_t, std::queue<QueueItem>[]);
 
 #endif
