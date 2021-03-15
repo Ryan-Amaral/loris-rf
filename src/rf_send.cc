@@ -39,6 +39,7 @@ void InitRfSend(const uint8_t nQueues, const uint32_t chunkSz){
 
     AddToQueue(false, "hallooo", 2, queues);
     AddToQueue(true, "dir/file.png", 0, queues);
+    AddToQueue(true, "dir/file2.png", 0, queues);
     
     printf("%ld\n", queues[0].size());
     printf("%ld\n", queues[1].size());
@@ -46,6 +47,7 @@ void InitRfSend(const uint8_t nQueues, const uint32_t chunkSz){
 
 
     printf("%s\n", queues[0].front().data.c_str());
+    printf("%s\n", queues[0].back().data.c_str());
     printf("%s\n", queues[2].front().data.c_str());
 
 
@@ -53,21 +55,29 @@ void InitRfSend(const uint8_t nQueues, const uint32_t chunkSz){
 }
 
 bool SendChunk(const uint8_t& data, const uint32_t length){
-    // send data to antenna firmware
+    // send data to lower level firmware
     // no idea what this looks like yet
 
     // return if successful
     return true;
 }
 
-void AddToQueue(bool isImage, std::string data, const uint8_t priority, std::queue<QueueItem> queues[]){
+int AddToQueue(bool isImage, std::string data, const uint8_t priority, std::queue<QueueItem> queues[]){
+
+    // hande case of priority too low
+    if(priority < 0){
+        return 1;
+    }
+
     try{
         // create the new queue item with cursor at 0
         queues[priority].push(QueueItem{isImage, 0, data});
     }catch(...){
-        // priority probably out of range
-        
+        // priority probably too high
+        return 2;
     }
+
+    return 0;
 }
 
 int main(){

@@ -30,7 +30,8 @@ void InitRfSend(const uint8_t, const uint32_t);
 bool SendChunk(const uint8_t&, const uint32_t);
 
 // Adds data to a queue of the specified type, data and priority.
+// Gives error code: 0 success, 1 too low, 2 too high.
 // args: type, data, priority level
-void AddToQueue(bool, std::string, const uint8_t, std::queue<QueueItem>[]);
+int AddToQueue(bool, std::string, const uint8_t, std::queue<QueueItem>[]);
 
 #endif
