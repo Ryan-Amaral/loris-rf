@@ -6,8 +6,8 @@ Purpose: Handles perations related to the rf sending subsystem.
 Author: Ryan Amaral
 */
 
-#ifndef CUBESAT_CORE_INCLUDE_SUBSYSTEM_SERVER_RF_SEND
-#define CUBESAT_CORE_INCLUDE_SUBSYSTEM_SERVER_RF_SEND
+#ifndef CUBESAT_CORE_INCLUDE_SUBSYSTEM_SERVER_RF
+#define CUBESAT_CORE_INCLUDE_SUBSYSTEM_SERVER_RF
 
 #define _XOPEN_SOURCE
 
@@ -16,7 +16,10 @@ Author: Ryan Amaral
 
 #include <signal.h>
 #include <string.h>
+#include <pthread.h>
 
-extern SubsystemModule rf_send_module;
+extern SubsystemModule rf_module;
+
+static pthread_t rf_send_thread;
 
 #endif
