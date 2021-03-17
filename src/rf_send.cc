@@ -83,6 +83,7 @@ uint8_t* get_chunk(QueueItem* queue_item, uint32_t chunk_size){
     return nullptr;
 }
 
+// Opens and reads the image to get the chunk from it.
 uint8_t* get_image_chunk(QueueItem* queue_item, uint32_t chunk_size){
 
     // open image
@@ -96,6 +97,7 @@ uint8_t* get_image_chunk(QueueItem* queue_item, uint32_t chunk_size){
     return nullptr;
 }
 
+// Sends the chunk off to the low level sending firmware.
 bool send_chunk(const uint8_t data[], const uint32_t length){
     // send data to lower level firmware
     // no idea what this looks like yet
@@ -127,6 +129,7 @@ void rf_add_to_queue(const bool is_image, const std::string data, uint8_t priori
     g_queues[priority].push(QueueItem{is_image, 0, data, n_bytes});
 }
 
+// Gets the size in bytes of the image.
 uint32_t get_image_size(const std::string image_path){
     return 500;
 }
