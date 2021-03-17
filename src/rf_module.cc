@@ -6,9 +6,9 @@ Purpose: Handles perations related to the rf sending subsystem.
 Author: Ryan Amaral
 */
 
-//#include "rf_module.h"
+#include "rf_module.h"
 #include "rf_send.h"
-/*#include "client_api.h"
+#include "client_api.h"
 
 int rf_server_start(void*);
 int rf_server_stop(void*);
@@ -30,8 +30,8 @@ int rf_send_server_start(void* data) {
     return 0;
   }
 
-  // create the thread to run RfSend in
-  pthread_create(&rf_send_thread, NULL, RfSend, NULL);
+  // create the thread to run RfSend in maybe
+  // pthread_create(&rf_send_thread, NULL, RfSend, NULL);
 
   // Keep refreshing incoming messages
   for (;;) {
@@ -49,24 +49,25 @@ int rf_send_server_stop(void* data) {
 
 static void process_general_msg(char* msg, size_t msg_len, void* data) {
   
-  if (strncmp(msg, ipc.rfs.cmd.qmsg, msg_len) == 0) {
+  if (strncmp(msg, ipc.rfs.cmd.init, msg_len) == 0) {
+    printf("[rfs] initializing rfs...\n");
+    // extract init params and send to rf_init
+  } 
+  else if (strncmp(msg, ipc.rfs.cmd.qmsg, msg_len) == 0) {
     printf("[rfs] queueing text message to be sent...\n");
-    add_text_to_queue = true;
-    while(add_text_to_queue){} // wait untill done
+    // extract text and other data and send off to rf_add_to_queue
   } 
   else if (strncmp(msg, ipc.rfs.cmd.qpic, msg_len) == 0) {
     printf("[rfs] queueing image message to be sent...\n");
-    add_image_to_queue = true;
-    while(add_image_to_queue){} // wait untill done
-
+    // extract image and other data and send off to rf_add_to_queue
   }
   else if (strncmp(msg, ipc.rfs.cmd.qtel, msg_len) == 0) {
-    printf("[rfs] queueing paired data message to be sent...\n");
-
+    // extract text and other data and send off to rf_add_to_queue
+    // I'd actually prefer if this was just text
   }
   else if (strncmp(msg, ipc.rfs.cmd.start_send, msg_len) == 0) {
     printf("[rfs] enabling send mode...\n");
-    send_mode = true;
+    // start a thread to run rf_send
   }
   else if (strncmp(msg, ipc.rfs.cmd.stop_send, msg_len) == 0) {
     printf("[rfs] disabling send mode...\n");
@@ -77,7 +78,7 @@ static void process_general_msg(char* msg, size_t msg_len, void* data) {
   }
 
     printf("[rfs] done!\n");
-}*/
+}/*
 
 
 // test stuff below
@@ -100,4 +101,4 @@ int main(){
   pthread_join(thread_id, NULL);
 
   rf_init(3, 129);
-}
+}*/
