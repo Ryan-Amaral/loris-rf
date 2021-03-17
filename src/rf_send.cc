@@ -25,12 +25,30 @@ void rf_send(){
     send_mode = true;
     while(send_mode){
         // get a chunk of data from highest priority queue with data
-        uint8_t queue_index = next_queue_index();
+        uint8_t queue_index = next_queue_index(g_queues, g_n_queues);
+        // nothing available to send
+        if(queue_index == -1){
+            continue;
+        }
+
         QueueItem* queue_item = &g_queues[queue_index].front();
-        uint8_t* chunk = get_chunk(queue_item);
+        // save original cursor incase failure to send
+        uint32_t o_cursor = queue_item->cursor;
+
+        // chunk is an array of bytes (uint8_t's) to send
+        uint8_t* chunk = get_chunk(queue_item, g_chunk_size);
+        // get size of the current chunk
+        uint32_t cur_chunk_len = queue_item->cursor - o_cursor;
 
         // attempt to send that chunk synchronously, receiving success or failure
-        //bool success = rf_send_chunk()
+        bool success = send_chunk(chunk, cur_chunk_len);
+
+        // reset cursor if send failed
+        if(!success){
+            queue_item->cursor = o_cursor;
+        }
+
+        // maybe notify someone of failure to send
         
         // pop if queue item totally done
         if(queue_item->cursor >= queue_item->n_bytes){
@@ -41,9 +59,9 @@ void rf_send(){
 
 // Returns the index of the queue that will be used next for sending.
 // -1 if nothing available to send.
-uint8_t next_queue_index(){
-    for(int i=0; i<g_n_queues; ++i){
-        if(g_queues[i].size() > 0){
+uint8_t next_queue_index(const std::queue<QueueItem> queues[], const uint8_t n_queues){
+    for(int i=0; i<n_queues; ++i){
+        if(queues[i].size() > 0){
             return i;
         }
     }
@@ -51,26 +69,29 @@ uint8_t next_queue_index(){
     return -1;
 }
 
-// Returns the index of the queue that will be used next for sending.
-// -1 if nothing available to send.
-QueueItem* next_queue_item(){
-    for(int i=0; i<g_n_queues; ++i){
-        if(g_queues[i].size() > 0){
-            return &g_queues[i].front();
-        }
-    }
+// Gets the next chunk of data from the queue_item, updates cursor.
+uint8_t* get_chunk(QueueItem* queue_item, uint32_t chunk_size){
+
+    // if text data its simple
+
+    // update cursor
+
+    // call helper to get image data
+
+    
 
     return nullptr;
 }
 
-uint8_t* get_chunk(QueueItem* queue_item){
+uint8_t* get_image_chunk(QueueItem* queue_item, uint32_t chunk_size){
 
-    // find the highest priority queue with an item
-    
+    // open image
 
-    // get the next chunk from that item
+    // start reading from cursor bit
 
-    
+    // read up to chunk size bites
+
+    // update cursor
 
     return nullptr;
 }
@@ -94,11 +115,20 @@ void rf_add_to_queue(const bool is_image, const std::string data, uint8_t priori
     }
 
     // find the length of the data in bytes
-    // todo: create a function for this
-    uint32_t n_bytes = 500;
+    uint32_t n_bytes;
+    if(is_image){
+        n_bytes = get_image_size(data);
+    }
+    else{
+        n_bytes = data.length();
+    }
 
     // create the new queue item with cursor at 0
     g_queues[priority].push(QueueItem{is_image, 0, data, n_bytes});
+}
+
+uint32_t get_image_size(const std::string image_path){
+    return 500;
 }
 
 /*int main(){
