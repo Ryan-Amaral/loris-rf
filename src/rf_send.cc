@@ -1,87 +1,81 @@
 #include "rf_send.h"
 
-// give concrete definition to external variables
-std::string e_data;
-int e_priority;
-bool add_text_to_queue;
-bool add_image_to_queue;
-bool send_mode;
+// give concrete definition to external data and flags
+// external flag for when we are in send mode
+bool send_mode = false;
 
+// give concrete definition to important global variables
+// globally accessible queues
+std::queue<QueueItem>* g_queues;
+// globally accessible lengh of queues
+uint8_t g_n_queues = 0;
+// globablly accessible chunk size
+uint32_t g_chunk_size = 0;
 
-void rf_init(const uint8_t n_queues, const uint32_t chunk_sz){
+void rf_init(const uint8_t n_queues, const uint32_t chunk_size){
     // set up the queues, and chunk size for sending
-    queues = new std::queue<QueueItem>[n_queues];
-    num_queues = n_queues;
-    chunk_size = chunk_sz;
-
-    // initialize flags
-    add_text_to_queue = false;
-    add_image_to_queue = false;
-    //send_mode = false;
-
-    printf("%d", send_mode);
+    g_queues = new std::queue<QueueItem>[n_queues];
+    g_n_queues = n_queues;
+    g_chunk_size = chunk_size;
 }
 
-void rf_send(const uint8_t nQueues, const uint32_t chunkSz){
+void rf_send(){
 
-    // initialize constantly needed items
-    std::queue<QueueItem>* queues = new std::queue<QueueItem>[nQueues];
-    uint32_t chunkSize = chunkSz;
+    // enable send mode and run until stopped by module
+    send_mode = true;
+    while(send_mode){
+        // get a chunk of data from highest priority queue with data
+        uint8_t queue_index = next_queue_index();
+        QueueItem* queue_item = &g_queues[queue_index].front();
+        uint8_t* chunk = get_chunk(queue_item);
 
-    // run indefinitely
-    while(false){
-
-        // check for diagnostics requests
-
-        // check for param updates / resets / shutdown
-
-        // check for queueing request
-        if(add_text_to_queue){
-            rf_add_to_queue(false, e_data, e_priority, queues);
-            add_text_to_queue = false;
+        // attempt to send that chunk synchronously, receiving success or failure
+        //bool success = rf_send_chunk()
+        
+        // pop if queue item totally done
+        if(queue_item->cursor >= queue_item->n_bytes){
+            g_queues[queue_index].pop();
         }
-        else if(add_image_to_queue){
-            rf_add_to_queue(true, e_data, e_priority, queues);
-            add_image_to_queue = true;
-        }
+    }
+}
 
-        // check for if sending mode
-
-        // send if right mode
-        if(send_mode){
-            // get a chunk of data from highest priority queue with data
-
-            // attempt to send that chunk synchronously, receiving success or failure
-            //bool success = SendChunk
-
-            // update cursor if chunk send success, or pop if sent all data
+// Returns the index of the queue that will be used next for sending.
+// -1 if nothing available to send.
+uint8_t next_queue_index(){
+    for(int i=0; i<g_n_queues; ++i){
+        if(g_queues[i].size() > 0){
+            return i;
         }
     }
 
-
-    // temp test stuff here:
-    printf("%ld\n", queues[0].size());
-    printf("%ld\n", queues[1].size());
-    printf("%ld\n", queues[2].size());
-
-    rf_add_to_queue(false, "hallooo", 2, queues);
-    rf_add_to_queue(true, "dir/file.png", 0, queues);
-    rf_add_to_queue(true, "dir/file2.png", 0, queues);
-    
-    printf("%ld\n", queues[0].size());
-    printf("%ld\n", queues[1].size());
-    printf("%ld\n", queues[2].size());
-
-
-    printf("%s\n", queues[0].front().data.c_str());
-    printf("%s\n", queues[0].back().data.c_str());
-    printf("%s\n", queues[2].front().data.c_str());
-
-
-    delete[] queues;
+    return -1;
 }
 
-bool rf_send_chunk(const uint8_t& data, const uint32_t length){
+// Returns the index of the queue that will be used next for sending.
+// -1 if nothing available to send.
+QueueItem* next_queue_item(){
+    for(int i=0; i<g_n_queues; ++i){
+        if(g_queues[i].size() > 0){
+            return &g_queues[i].front();
+        }
+    }
+
+    return nullptr;
+}
+
+uint8_t* get_chunk(QueueItem* queue_item){
+
+    // find the highest priority queue with an item
+    
+
+    // get the next chunk from that item
+
+    
+
+    return nullptr;
+}
+
+bool send_chunk(const uint8_t data[], const uint32_t length){
     // send data to lower level firmware
     // no idea what this looks like yet
 
@@ -89,18 +83,22 @@ bool rf_send_chunk(const uint8_t& data, const uint32_t length){
     return true;
 }
 
-void rf_add_to_queue(const bool is_image, const std::string data, uint8_t priority, std::queue<QueueItem> queues[]){
+void rf_add_to_queue(const bool is_image, const std::string data, uint8_t priority){
 
     // change improper priority value
     if(priority < 0){
         priority = 0;
     }
-    else if(priority >= num_queues){
-        priority = num_queues - 1;
+    else if(priority >= g_n_queues){
+        priority = g_n_queues - 1;
     }
 
+    // find the length of the data in bytes
+    // todo: create a function for this
+    uint32_t n_bytes = 500;
+
     // create the new queue item with cursor at 0
-    queues[priority].push(QueueItem{is_image, 0, data});
+    g_queues[priority].push(QueueItem{is_image, 0, data, n_bytes});
 }
 
 /*int main(){

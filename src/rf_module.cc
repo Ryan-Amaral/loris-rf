@@ -6,12 +6,12 @@ Purpose: Handles perations related to the rf sending subsystem.
 Author: Ryan Amaral
 */
 
-#include "rf_module.h"
+//#include "rf_module.h"
 #include "rf_send.h"
-#include "client_api.h"
+/*#include "client_api.h"
 
-int rf_send_server_start(void*);
-int rf_send_server_stop(void*);
+int rf_server_start(void*);
+int rf_server_stop(void*);
 static void process_general_msg(char* msg, size_t msg_len, void* data);
 
 SubsystemModule rf_send_module = {.start = rf_send_server_start,
@@ -77,9 +77,12 @@ static void process_general_msg(char* msg, size_t msg_len, void* data) {
   }
 
     printf("[rfs] done!\n");
-}
+}*/
 
-/*void *myThreadFun(void *vargp) 
+
+// test stuff below
+
+void *myThreadFun(void *vargp) 
 { 
     printf("Printing GeeksQuiz from Thread \n");
     send_mode = 0;
@@ -97,4 +100,4 @@ int main(){
   pthread_join(thread_id, NULL);
 
   rf_init(3, 129);
-}*/
+}
