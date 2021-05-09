@@ -29,7 +29,7 @@ CALLBACK(rfs_general) {
   if (strncmp(msg, ipc.rfs.cmd.init, msg_len) == 0) {
     modprintf("initializing rfs...\n");
     // extract init params and send to rf_init
-    // todo implement this
+    // todo implement param extraction
     queues_package = rf::init(5, 1000);
   }  
   else if (strncmp(msg, ipc.rfs.cmd.load, msg_len) == 0) {

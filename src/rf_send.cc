@@ -1,5 +1,62 @@
 #include "rf_send.h"
 
+
+
+// Returns the index of the queue that will be used next for sending.
+// -1 if nothing available to send.
+uint8_t next_queue_index(const std::queue<rf::QueueItem> queues[], const uint8_t n_queues){
+    for(int i=0; i<n_queues; ++i){
+        if(queues[i].size() > 0){
+            return i;
+        }
+    }
+
+    return -1;
+}
+
+// Gets the next chunk of data from the queue_item, updates cursor.
+uint8_t* get_chunk(rf::QueueItem* queue_item, uint32_t chunk_size){
+
+    // if text data its simple
+
+    // update cursor
+
+    // call helper to get image data
+
+    
+
+    return nullptr;
+}
+
+// Opens and reads the image to get the chunk from it.
+uint8_t* get_image_chunk(rf::QueueItem* queue_item, uint32_t chunk_size){
+
+    // open image
+
+    // start reading from cursor bit
+
+    // read up to chunk size bites
+
+    // update cursor
+
+    return nullptr;
+}
+
+// Sends the chunk off to the low level sending firmware.
+bool send_chunk(const uint8_t data[], const uint32_t length){
+    // send data to lower level firmware
+    // no idea what this looks like yet
+
+    // return if successful
+    return true;
+}
+
+// Gets the size in bytes of the image.
+uint32_t get_image_size(const std::string image_path){
+    return 500;
+}
+
+
 // Flag specifying whether we are in sending window.
 bool rf::send_mode = false;
 
@@ -59,55 +116,6 @@ void rf::send(void* vsqp){
     }
 }
 
-// Returns the index of the queue that will be used next for sending.
-// -1 if nothing available to send.
-uint8_t next_queue_index(const std::queue<rf::QueueItem> queues[], const uint8_t n_queues){
-    for(int i=0; i<n_queues; ++i){
-        if(queues[i].size() > 0){
-            return i;
-        }
-    }
-
-    return -1;
-}
-
-// Gets the next chunk of data from the queue_item, updates cursor.
-uint8_t* get_chunk(rf::QueueItem* queue_item, uint32_t chunk_size){
-
-    // if text data its simple
-
-    // update cursor
-
-    // call helper to get image data
-
-    
-
-    return nullptr;
-}
-
-// Opens and reads the image to get the chunk from it.
-uint8_t* get_image_chunk(rf::QueueItem* queue_item, uint32_t chunk_size){
-
-    // open image
-
-    // start reading from cursor bit
-
-    // read up to chunk size bites
-
-    // update cursor
-
-    return nullptr;
-}
-
-// Sends the chunk off to the low level sending firmware.
-bool send_chunk(const uint8_t data[], const uint32_t length){
-    // send data to lower level firmware
-    // no idea what this looks like yet
-
-    // return if successful
-    return true;
-}
-
 // Adds data to a queue of the specified type, data and priority.
 // args: type, data, priority level, the queue
 void rf::add_to_queue(const bool is_image, const std::string data, 
@@ -132,11 +140,6 @@ void rf::add_to_queue(const bool is_image, const std::string data,
 
     // create the new queue item with cursor at 0
     sqp->queues[priority].push(rf::QueueItem{is_image, 0, data, n_bytes});
-}
-
-// Gets the size in bytes of the image.
-uint32_t get_image_size(const std::string image_path){
-    return 500;
 }
 
 // Save the contents of queues to a file incase the system crashes.
