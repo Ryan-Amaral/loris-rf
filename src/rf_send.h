@@ -29,7 +29,7 @@ namespace rf{
     };
 
     // Package to send to rf_send functions to have all queue data.
-    struct SendQueuesPackage{
+    struct QueuesPackage{
         // The different queues representing different priorities.
         std::queue<QueueItem>* queues;
         // The number of queues.
@@ -42,29 +42,29 @@ namespace rf{
     extern bool send_mode;
 
     // Initializes the queues and establishes chunk size.
-    // Returns the queues and other data in a SendQueuesPackage.
+    // Returns the queues and other data in a QueuesPackage.
     // args: queue size, and chunk size.
-    SendQueuesPackage* init(const uint8_t, const uint32_t);
+    QueuesPackage* init(const uint8_t, const uint32_t);
 
     // Runs the loop for sending messages, ran in a pthread.
-    // args: SendQueuesPackage* as a void*.
+    // args: QueuesPackage* as a void*.
     void send(void*);
 
     // Adds data to a queue of the specified type, data and priority.
     // args: type, data, priority level, the queue
-    void add_to_queue(const bool, const std::string, uint8_t, SendQueuesPackage*);
+    void add_to_queue(const bool, const std::string, uint8_t, QueuesPackage*);
 
     // Save the contents of queues to a file incase the system crashes.
-    // args: SendQueuesPackage* to save, string representing the file to save to.
-    void save_queues(const SendQueuesPackage*, const std::string);
+    // args: QueuesPackage* to save, string representing the file to save to.
+    void save_queues(const QueuesPackage*, const std::string);
 
-    // Load a SendQueuesPackage* from the given file.
+    // Load a QueuesPackage* from the given file.
     // args: string representing the file to load from.
-    SendQueuesPackage* load_queues(const std::string);
+    QueuesPackage* load_queues(const std::string);
 
     // Deallocate any used dynamic memory.
-    // args: SendQueuesPackage* to have its contents deleted.
-    void cleanup(SendQueuesPackage*);
+    // args: QueuesPackage* to have its contents deleted.
+    void cleanup(QueuesPackage*);
 
 }
 

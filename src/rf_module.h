@@ -17,7 +17,6 @@ Author: Ryan Amaral
 // project headers
 #include "subsystem_module.h"
 
-#include "rf_module.h"
 #include "rf_send.h"
 #include "client_api.h"
 
@@ -30,5 +29,7 @@ Author: Ryan Amaral
 NEW_DOCK_MODULE(rfs);
 
 static pthread_t rf_send_thread;
+
+static rf::QueuesPackage* queues_package;
 
 #endif

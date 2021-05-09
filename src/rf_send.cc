@@ -4,11 +4,11 @@
 bool rf::send_mode = false;
 
 // Initializes the queues and establishes chunk size.
-// Returns the queues and other data in a SendQueuesPackage.
+// Returns the queues and other data in a QueuesPackage.
 // args: queue size, and chunk size.
-rf::SendQueuesPackage* rf::init(const uint8_t n_queues, const uint32_t chunk_size){
+rf::QueuesPackage* rf::init(const uint8_t n_queues, const uint32_t chunk_size){
 
-    rf::SendQueuesPackage* sqp = new rf::SendQueuesPackage;
+    rf::QueuesPackage* sqp = new rf::QueuesPackage;
 
     sqp->queues = new std::queue<rf::QueueItem>[n_queues];
     sqp->n_queues = n_queues;
@@ -18,10 +18,10 @@ rf::SendQueuesPackage* rf::init(const uint8_t n_queues, const uint32_t chunk_siz
 }
 
 // Runs the loop for sending messages, ran in a pthread.
-// args: SendQueuesPackage* as a void*.
+// args: QueuesPackage* as a void*.
 void rf::send(void* vsqp){
 
-    rf::SendQueuesPackage* sqp = (rf::SendQueuesPackage*)vsqp;
+    rf::QueuesPackage* sqp = (rf::QueuesPackage*)vsqp;
 
     // enable send mode and run until stopped by module
     rf::send_mode = true;
@@ -111,7 +111,7 @@ bool send_chunk(const uint8_t data[], const uint32_t length){
 // Adds data to a queue of the specified type, data and priority.
 // args: type, data, priority level, the queue
 void rf::add_to_queue(const bool is_image, const std::string data, 
-        uint8_t priority, rf::SendQueuesPackage* sqp){
+        uint8_t priority, rf::QueuesPackage* sqp){
 
     // change improper priority value
     if(priority < 0){
@@ -140,21 +140,21 @@ uint32_t get_image_size(const std::string image_path){
 }
 
 // Save the contents of queues to a file incase the system crashes.
-// args: SendQueuesPackage* to save, string representing the file to save to.
-void rf::save_queues(const rf::SendQueuesPackage*, const std::string){
+// args: QueuesPackage* to save, string representing the file to save to.
+void rf::save_queues(const rf::QueuesPackage*, const std::string){
     // todo implement
 }
 
-// Load a SendQueuesPackage* from the given file.
+// Load a QueuesPackage* from the given file.
 // args: string representing the file to load from.
-rf::SendQueuesPackage* rf::load_queues(const std::string){
+rf::QueuesPackage* rf::load_queues(const std::string){
     // todo implement
     return nullptr;
 }
 
 // Deallocate any used dynamic memory.
-// args: SendQueuesPackage* to have its contents deleted.
-void rf::cleanup(rf::SendQueuesPackage* sqp){
+// args: QueuesPackage* to have its contents deleted.
+void rf::cleanup(rf::QueuesPackage* sqp){
     delete[] sqp->queues;
     delete sqp;
 }

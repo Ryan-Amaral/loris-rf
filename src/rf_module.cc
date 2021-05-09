@@ -6,11 +6,39 @@ Purpose: Handles operations related to the rf subsystem.
 Author: Ryan Amaral
 */
 
+#include "rf_module.h"
+
+START_MODULE(rfs) {
+  // Connect to the IPC
+  OK(ipc_connect(ipc.rfs.name))
+
+  // Create listener for general requests
+  OK(ipc_qrecv("*", rf_general, NULL, IPC_QRECV_MSG))
+
+  // initialize sending queues and thread for sending
+  send_queues_package = rf::init()
+
+  // Keep refreshing incoming messages
+  for (;;) {
+    OK(ipc_refresh())
+  }
+}
+
 CALLBACK(rfs_general) {
   
   if (strncmp(msg, ipc.rfs.cmd.init, msg_len) == 0) {
     modprintf("initializing rfs...\n");
     // extract init params and send to rf_init
+    // todo implement this
+    queues_package = rf::init(5, 1000);
+  }  
+  else if (strncmp(msg, ipc.rfs.cmd.load, msg_len) == 0) {
+    modprintf("loading queues package from existing file...\n");
+    // extract text for file location and send to load_queues
+  }  
+  else if (strncmp(msg, ipc.rfs.cmd.save, msg_len) == 0) {
+    modprintf("saving queues package to file...\n");
+    // extract text for file location and send to save queues with queues package
   } 
   else if (strncmp(msg, ipc.rfs.cmd.qmsg, msg_len) == 0) {
     modprintf("queueing text message to be sent...\n");
@@ -30,6 +58,7 @@ CALLBACK(rfs_general) {
   }
   else if (strncmp(msg, ipc.rfs.cmd.stop_send, msg_len) == 0) {
     modprintf("disabling send mode...\n");
+    // signal a stop to a running send thread if active
     rf::send_mode = false;
   }
   else {
@@ -37,21 +66,6 @@ CALLBACK(rfs_general) {
   }
 
     modprintf("done!\n");
-}
-
-START_MODULE(rfs) {
-  // Connect to the IPC
-  OK(ipc_connect(ipc.rfs.name))
-
-  // Create listener for general requests
-  OK(ipc_qrecv("*", rf_general, NULL, IPC_QRECV_MSG))
-
-  // initialize thread for sending
-
-  // Keep refreshing incoming messages
-  for (;;) {
-    OK(ipc_refresh())
-  }
 }
 
 STOP_MODULE(rfs) {
