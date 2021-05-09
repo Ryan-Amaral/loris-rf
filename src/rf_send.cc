@@ -6,9 +6,9 @@ bool send_mode = false;
 // Initializes the queues and establishes chunk size.
 // Returns the queues and other data in a SendQueuesPackage.
 // args: queue size, and chunk size.
-SendQueuesPackage* rf_init(const uint8_t n_queues, const uint32_t chunk_size){
+rf::SendQueuesPackage* rf::init(const uint8_t n_queues, const uint32_t chunk_size){
 
-    SendQueuesPackage* sqp = new SendQueuesPackage;
+    rf::SendQueuesPackage* sqp = new rf::SendQueuesPackage;
 
     sqp->queues = new std::queue<QueueItem>[n_queues];
     sqp->n_queues = n_queues;
@@ -19,9 +19,9 @@ SendQueuesPackage* rf_init(const uint8_t n_queues, const uint32_t chunk_size){
 
 // Runs the loop for sending messages, ran in a pthread.
 // args: SendQueuesPackage* as a void*.
-void rf_send(void* vsqp){
+void rf::send(void* vsqp){
 
-    SendQueuesPackage* sqp = (SendQueuesPackage*)vsqp;
+    rf::SendQueuesPackage* sqp = (rf::SendQueuesPackage*)vsqp;
 
     // enable send mode and run until stopped by module
     send_mode = true;
@@ -61,7 +61,7 @@ void rf_send(void* vsqp){
 
 // Returns the index of the queue that will be used next for sending.
 // -1 if nothing available to send.
-uint8_t next_queue_index(const std::queue<QueueItem> queues[], const uint8_t n_queues){
+uint8_t next_queue_index(const std::queue<rf::QueueItem> queues[], const uint8_t n_queues){
     for(int i=0; i<n_queues; ++i){
         if(queues[i].size() > 0){
             return i;
@@ -72,7 +72,7 @@ uint8_t next_queue_index(const std::queue<QueueItem> queues[], const uint8_t n_q
 }
 
 // Gets the next chunk of data from the queue_item, updates cursor.
-uint8_t* get_chunk(QueueItem* queue_item, uint32_t chunk_size){
+uint8_t* get_chunk(rf::QueueItem* queue_item, uint32_t chunk_size){
 
     // if text data its simple
 
@@ -86,7 +86,7 @@ uint8_t* get_chunk(QueueItem* queue_item, uint32_t chunk_size){
 }
 
 // Opens and reads the image to get the chunk from it.
-uint8_t* get_image_chunk(QueueItem* queue_item, uint32_t chunk_size){
+uint8_t* get_image_chunk(rf::QueueItem* queue_item, uint32_t chunk_size){
 
     // open image
 
@@ -110,8 +110,8 @@ bool send_chunk(const uint8_t data[], const uint32_t length){
 
 // Adds data to a queue of the specified type, data and priority.
 // args: type, data, priority level, the queue
-void rf_add_to_queue(const bool is_image, const std::string data, 
-        uint8_t priority, SendQueuesPackage* sqp){
+void rf::add_to_queue(const bool is_image, const std::string data, 
+        uint8_t priority, rf::SendQueuesPackage* sqp){
 
     // change improper priority value
     if(priority < 0){
@@ -139,9 +139,22 @@ uint32_t get_image_size(const std::string image_path){
     return 500;
 }
 
+// Save the contents of queues to a file incase the system crashes.
+// args: SendQueuesPackage* to save, string representing the file to save to.
+void rf::save_queues(const rf::SendQueuesPackage*, const std::string){
+    // todo implement
+}
+
+// Load a SendQueuesPackage* from the given file.
+// args: string representing the file to load from.
+rf::SendQueuesPackage* rf::load_queues(const std::string){
+    // todo implement
+    return nullptr;
+}
+
 // Deallocate any used dynamic memory.
 // args: SendQueuesPackage* to have its contents deleted.
-void cleanup(SendQueuesPackage* sqp){
+void rf::cleanup(rf::SendQueuesPackage* sqp){
     delete[] sqp->queues;
     delete sqp;
 }

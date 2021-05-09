@@ -14,46 +14,58 @@ Author: Ryan Amaral
 #include <string>
 #include <queue>
 
-// Each individual item in a queue.
-struct QueueItem{
-    // whether the item is an image or simple text data
-    bool is_image;
-    // what byte we are on in the message
-    uint32_t cursor;
-    // name of file if image item, otherwise the literal message to send
-    std::string data;
-    // number of bytes in the item
-    uint32_t n_bytes;
-};
+namespace rf{
 
-// Package to send to rf_send functions to have all queue data.
-struct SendQueuesPackage{
-    // The different queues representing different priorities.
-    std::queue<QueueItem>* queues;
-    // The number of queues.
-    int n_queues;
-    // Size of chunks to send to ground station.
-    int chunk_size;
-};
+    // Each individual item in a queue.
+    struct QueueItem{
+        // whether the item is an image or simple text data
+        bool is_image;
+        // what byte we are on in the message
+        uint32_t cursor;
+        // name of file if image item, otherwise the literal message to send
+        std::string data;
+        // number of bytes in the item
+        uint32_t n_bytes;
+    };
 
-// Flag specifying whether we are in sending window.
-extern bool send_mode;
+    // Package to send to rf_send functions to have all queue data.
+    struct SendQueuesPackage{
+        // The different queues representing different priorities.
+        std::queue<QueueItem>* queues;
+        // The number of queues.
+        int n_queues;
+        // Size of chunks to send to ground station.
+        int chunk_size;
+    };
 
-// Initializes the queues and establishes chunk size.
-// Returns the queues and other data in a SendQueuesPackage.
-// args: queue size, and chunk size.
-SendQueuesPackage* rf_init(const uint8_t, const uint32_t);
+    // Flag specifying whether we are in sending window.
+    extern bool send_mode;
 
-// Runs the loop for sending messages, ran in a pthread.
-// args: SendQueuesPackage* as a void*.
-void rf_send(void*);
+    // Initializes the queues and establishes chunk size.
+    // Returns the queues and other data in a SendQueuesPackage.
+    // args: queue size, and chunk size.
+    SendQueuesPackage* init(const uint8_t, const uint32_t);
 
-// Adds data to a queue of the specified type, data and priority.
-// args: type, data, priority level, the queue
-void rf_add_to_queue(const bool, const std::string, uint8_t, SendQueuesPackage*);
+    // Runs the loop for sending messages, ran in a pthread.
+    // args: SendQueuesPackage* as a void*.
+    void send(void*);
 
-// Deallocate any used dynamic memory.
-// args: SendQueuesPackage* to have its contents deleted.
-void cleanup(SendQueuesPackage*);
+    // Adds data to a queue of the specified type, data and priority.
+    // args: type, data, priority level, the queue
+    void add_to_queue(const bool, const std::string, uint8_t, SendQueuesPackage*);
+
+    // Save the contents of queues to a file incase the system crashes.
+    // args: SendQueuesPackage* to save, string representing the file to save to.
+    void save_queues(const SendQueuesPackage*, const std::string);
+
+    // Load a SendQueuesPackage* from the given file.
+    // args: string representing the file to load from.
+    SendQueuesPackage* load_queues(const std::string);
+
+    // Deallocate any used dynamic memory.
+    // args: SendQueuesPackage* to have its contents deleted.
+    void cleanup(SendQueuesPackage*);
+
+}
 
 #endif
