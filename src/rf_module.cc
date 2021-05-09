@@ -6,7 +6,7 @@ Purpose: Handles operations related to the rf subsystem.
 Author: Ryan Amaral
 */
 
-CALLBACK(rf_general) {
+CALLBACK(rfs_general) {
   
   if (strncmp(msg, ipc.rfs.cmd.init, msg_len) == 0) {
     modprintf("initializing rfs...\n");
@@ -30,7 +30,7 @@ CALLBACK(rf_general) {
   }
   else if (strncmp(msg, ipc.rfs.cmd.stop_send, msg_len) == 0) {
     modprintf("disabling send mode...\n");
-    send_mode = false;
+    rf::send_mode = false;
   }
   else {
     modprintf("misc message incoming: %.*s\n", msg_len, msg);
@@ -39,7 +39,7 @@ CALLBACK(rf_general) {
     modprintf("done!\n");
 }
 
-START_MODULE(rf) {
+START_MODULE(rfs) {
   // Connect to the IPC
   OK(ipc_connect(ipc.rfs.name))
 
@@ -54,10 +54,10 @@ START_MODULE(rf) {
   }
 }
 
-STOP_MODULE(rf) {
+STOP_MODULE(rfs) {
   // Disconnect from the IPC
   ipc_disconnect();
   modprintf("disconnecting rf\n");
 }
 
-EXPORT_MODULE(rf);
+EXPORT_MODULE(rfs);

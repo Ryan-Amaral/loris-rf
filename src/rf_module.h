@@ -27,7 +27,7 @@ Author: Ryan Amaral
 #include <pthread.h>
 #include <queue>
 
-NEW_DOCK_MODULE(rf);
+NEW_DOCK_MODULE(rfs);
 
 static pthread_t rf_send_thread;
 

@@ -1,7 +1,7 @@
 #include "rf_send.h"
 
 // Flag specifying whether we are in sending window.
-bool send_mode = false;
+bool rf::send_mode = false;
 
 // Initializes the queues and establishes chunk size.
 // Returns the queues and other data in a SendQueuesPackage.
@@ -10,7 +10,7 @@ rf::SendQueuesPackage* rf::init(const uint8_t n_queues, const uint32_t chunk_siz
 
     rf::SendQueuesPackage* sqp = new rf::SendQueuesPackage;
 
-    sqp->queues = new std::queue<QueueItem>[n_queues];
+    sqp->queues = new std::queue<rf::QueueItem>[n_queues];
     sqp->n_queues = n_queues;
     sqp->chunk_size = chunk_size;
 
@@ -24,7 +24,7 @@ void rf::send(void* vsqp){
     rf::SendQueuesPackage* sqp = (rf::SendQueuesPackage*)vsqp;
 
     // enable send mode and run until stopped by module
-    send_mode = true;
+    rf::send_mode = true;
     while(send_mode){
         // get a chunk of data from highest priority queue with data
         uint8_t queue_index = next_queue_index(sqp->queues, sqp->n_queues);
@@ -33,7 +33,7 @@ void rf::send(void* vsqp){
             continue;
         }
 
-        QueueItem* queue_item = &sqp->queues[queue_index].front();
+        rf::QueueItem* queue_item = &sqp->queues[queue_index].front();
         // save original cursor incase failure to send
         uint32_t o_cursor = queue_item->cursor;
 
@@ -131,7 +131,7 @@ void rf::add_to_queue(const bool is_image, const std::string data,
     }
 
     // create the new queue item with cursor at 0
-    sqp->queues[priority].push(QueueItem{is_image, 0, data, n_bytes});
+    sqp->queues[priority].push(rf::QueueItem{is_image, 0, data, n_bytes});
 }
 
 // Gets the size in bytes of the image.
