@@ -36,21 +36,24 @@ struct SendQueuesPackage{
     int chunk_size;
 };
 
-// flag specifying whether we are in sending window
+// Flag specifying whether we are in sending window.
 extern bool send_mode;
 
 // Initializes the queues and establishes chunk size.
-void rf_init(const uint8_t, const uint32_t);
+// Returns the queues and other data in a SendQueuesPackage.
+// args: queue size, and chunk size.
+SendQueuesPackage* rf_init(const uint8_t, const uint32_t);
 
 // Runs the loop for sending messages, ran in a pthread.
+// args: SendQueuesPackage* as a void*.
 void rf_send(void*);
 
 // Adds data to a queue of the specified type, data and priority.
-// Gives error code: 0 success, 1 too low, 2 too high.
 // args: type, data, priority level, the queue
-void rf_add_to_queue(const bool, const std::string, uint8_t);
+void rf_add_to_queue(const bool, const std::string, uint8_t, SendQueuesPackage*);
 
 // Deallocate any used dynamic memory.
-void cleanup();
+// args: SendQueuesPackage* to have its contents deleted.
+void cleanup(SendQueuesPackage*);
 
 #endif

@@ -1,42 +1,44 @@
 #include "rf_send.h"
 
-// give concrete definition to external data and flags
-// external flag for when we are in send mode
+// Flag specifying whether we are in sending window.
 bool send_mode = false;
 
-// give concrete definition to important global variables
-// globally accessible queues
-std::queue<QueueItem>* g_queues;
-// globally accessible lengh of queues
-uint8_t g_n_queues = 0;
-// globablly accessible chunk size
-uint32_t g_chunk_size = 0;
+// Initializes the queues and establishes chunk size.
+// Returns the queues and other data in a SendQueuesPackage.
+// args: queue size, and chunk size.
+SendQueuesPackage* rf_init(const uint8_t n_queues, const uint32_t chunk_size){
 
-void rf_init(const uint8_t n_queues, const uint32_t chunk_size){
-    // set up the queues, and chunk size for sending
-    g_queues = new std::queue<QueueItem>[n_queues];
-    g_n_queues = n_queues;
-    g_chunk_size = chunk_size;
+    SendQueuesPackage* sqp = new SendQueuesPackage;
+
+    sqp->queues = new std::queue<QueueItem>[n_queues];
+    sqp->n_queues = n_queues;
+    sqp->chunk_size = chunk_size;
+
+    return sqp;
 }
 
-void rf_send(){
+// Runs the loop for sending messages, ran in a pthread.
+// args: SendQueuesPackage* as a void*.
+void rf_send(void* vsqp){
+
+    SendQueuesPackage* sqp = (SendQueuesPackage*)vsqp;
 
     // enable send mode and run until stopped by module
     send_mode = true;
     while(send_mode){
         // get a chunk of data from highest priority queue with data
-        uint8_t queue_index = next_queue_index(g_queues, g_n_queues);
+        uint8_t queue_index = next_queue_index(sqp->queues, sqp->n_queues);
         // nothing available to send
         if(queue_index == -1){
             continue;
         }
 
-        QueueItem* queue_item = &g_queues[queue_index].front();
+        QueueItem* queue_item = &sqp->queues[queue_index].front();
         // save original cursor incase failure to send
         uint32_t o_cursor = queue_item->cursor;
 
         // chunk is an array of bytes (uint8_t's) to send
-        uint8_t* chunk = get_chunk(queue_item, g_chunk_size);
+        uint8_t* chunk = get_chunk(queue_item, sqp->chunk_size);
         // get size of the current chunk
         uint32_t cur_chunk_len = queue_item->cursor - o_cursor;
 
@@ -52,7 +54,7 @@ void rf_send(){
         
         // pop if queue item totally done
         if(queue_item->cursor >= queue_item->n_bytes){
-            g_queues[queue_index].pop();
+            sqp->queues[queue_index].pop();
         }
     }
 }
@@ -106,14 +108,17 @@ bool send_chunk(const uint8_t data[], const uint32_t length){
     return true;
 }
 
-void rf_add_to_queue(const bool is_image, const std::string data, uint8_t priority){
+// Adds data to a queue of the specified type, data and priority.
+// args: type, data, priority level, the queue
+void rf_add_to_queue(const bool is_image, const std::string data, 
+        uint8_t priority, SendQueuesPackage* sqp){
 
     // change improper priority value
     if(priority < 0){
         priority = 0;
     }
-    else if(priority >= g_n_queues){
-        priority = g_n_queues - 1;
+    else if(priority >= sqp->n_queues){
+        priority = sqp->n_queues - 1;
     }
 
     // find the length of the data in bytes
@@ -126,12 +131,19 @@ void rf_add_to_queue(const bool is_image, const std::string data, uint8_t priori
     }
 
     // create the new queue item with cursor at 0
-    g_queues[priority].push(QueueItem{is_image, 0, data, n_bytes});
+    sqp->queues[priority].push(QueueItem{is_image, 0, data, n_bytes});
 }
 
 // Gets the size in bytes of the image.
 uint32_t get_image_size(const std::string image_path){
     return 500;
+}
+
+// Deallocate any used dynamic memory.
+// args: SendQueuesPackage* to have its contents deleted.
+void cleanup(SendQueuesPackage* sqp){
+    delete[] sqp->queues;
+    delete sqp;
 }
 
 /*int main(){
