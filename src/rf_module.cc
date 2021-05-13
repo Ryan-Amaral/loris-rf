@@ -15,9 +15,6 @@ START_MODULE(rfs) {
   // Create listener for general requests
   OK(ipc_qrecv("*", rf_general, NULL, IPC_QRECV_MSG))
 
-  // initialize sending queues and thread for sending
-  send_queues_package = rf::init()
-
   // Keep refreshing incoming messages
   for (;;) {
     OK(ipc_refresh())
@@ -35,18 +32,26 @@ CALLBACK(rfs_general) {
   else if (strncmp(msg, ipc.rfs.cmd.load, msg_len) == 0) {
     modprintf("loading queues package from existing file...\n");
     // extract text for file location and send to load_queues
+    // todo extract file name
+    queues_package = rf::load_queues("tmp.txt");
   }  
   else if (strncmp(msg, ipc.rfs.cmd.save, msg_len) == 0) {
     modprintf("saving queues package to file...\n");
     // extract text for file location and send to save queues with queues package
+    // todo, extract file name
+    rf::save_queues(queues_package, "tmp.txt");
   } 
   else if (strncmp(msg, ipc.rfs.cmd.qmsg, msg_len) == 0) {
     modprintf("queueing text message to be sent...\n");
     // extract text and other data and send off to rf_add_to_queue
+    // todo: extract message and priority
+    rf::add_to_queue(false, "replace me", 0, queues_package);
   } 
   else if (strncmp(msg, ipc.rfs.cmd.qpic, msg_len) == 0) {
     modprintf("queueing image message to be sent...\n");
     // extract image and other data and send off to rf_add_to_queue
+    // todo: extract image file and priority
+    rf::add_to_queue(true, "file.jpg", 0, queues_package);
   }
   else if (strncmp(msg, ipc.rfs.cmd.qtel, msg_len) == 0) {
     // extract text and other data and send off to rf_add_to_queue
@@ -55,6 +60,7 @@ CALLBACK(rfs_general) {
   else if (strncmp(msg, ipc.rfs.cmd.start_send, msg_len) == 0) {
     modprintf("enabling send mode...\n");
     // start a thread to run rf_send
+    rf::send((void*)queues_package);
   }
   else if (strncmp(msg, ipc.rfs.cmd.stop_send, msg_len) == 0) {
     modprintf("disabling send mode...\n");
@@ -72,6 +78,8 @@ STOP_MODULE(rfs) {
   // Disconnect from the IPC
   ipc_disconnect();
   modprintf("disconnecting rf\n");
+  // make sure to stop sending just in case
+  rf::send_mode = false;
 }
 
 EXPORT_MODULE(rfs);

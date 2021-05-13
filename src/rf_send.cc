@@ -65,37 +65,38 @@ bool rf::send_mode = false;
 // args: queue size, and chunk size.
 rf::QueuesPackage* rf::init(const uint8_t n_queues, const uint32_t chunk_size){
 
-    rf::QueuesPackage* sqp = new rf::QueuesPackage;
+    rf::QueuesPackage* qp = new rf::QueuesPackage;
 
-    sqp->queues = new std::queue<rf::QueueItem>[n_queues];
-    sqp->n_queues = n_queues;
-    sqp->chunk_size = chunk_size;
+    qp->queues = new std::queue<rf::QueueItem>[n_queues];
+    qp->n_queues = n_queues;
+    qp->chunk_size = chunk_size;
+    qp->id_count = 0;
 
-    return sqp;
+    return qp;
 }
 
 // Runs the loop for sending messages, ran in a pthread.
 // args: QueuesPackage* as a void*.
-void rf::send(void* vsqp){
+void rf::send(void* vqp){
 
-    rf::QueuesPackage* sqp = (rf::QueuesPackage*)vsqp;
+    rf::QueuesPackage* qp = (rf::QueuesPackage*)vqp;
 
     // enable send mode and run until stopped by module
     rf::send_mode = true;
     while(send_mode){
         // get a chunk of data from highest priority queue with data
-        uint8_t queue_index = next_queue_index(sqp->queues, sqp->n_queues);
+        uint8_t queue_index = next_queue_index(qp->queues, qp->n_queues);
         // nothing available to send
         if(queue_index == -1){
             continue;
         }
 
-        rf::QueueItem* queue_item = &sqp->queues[queue_index].front();
+        rf::QueueItem* queue_item = &qp->queues[queue_index].front();
         // save original cursor incase failure to send
         uint32_t o_cursor = queue_item->cursor;
 
         // chunk is an array of bytes (uint8_t's) to send
-        uint8_t* chunk = get_chunk(queue_item, sqp->chunk_size);
+        uint8_t* chunk = get_chunk(queue_item, qp->chunk_size);
         // get size of the current chunk
         uint32_t cur_chunk_len = queue_item->cursor - o_cursor;
 
@@ -111,7 +112,7 @@ void rf::send(void* vsqp){
         
         // pop if queue item totally done
         if(queue_item->cursor >= queue_item->n_bytes){
-            sqp->queues[queue_index].pop();
+            qp->queues[queue_index].pop();
         }
     }
 }
@@ -119,14 +120,14 @@ void rf::send(void* vsqp){
 // Adds data to a queue of the specified type, data and priority.
 // args: type, data, priority level, the queue
 void rf::add_to_queue(const bool is_image, const std::string data, 
-        uint8_t priority, rf::QueuesPackage* sqp){
+        uint8_t priority, rf::QueuesPackage* qp){
 
     // change improper priority value
     if(priority < 0){
         priority = 0;
     }
-    else if(priority >= sqp->n_queues){
-        priority = sqp->n_queues - 1;
+    else if(priority >= qp->n_queues){
+        priority = qp->n_queues - 1;
     }
 
     // find the length of the data in bytes
@@ -139,7 +140,30 @@ void rf::add_to_queue(const bool is_image, const std::string data,
     }
 
     // create the new queue item with cursor at 0
-    sqp->queues[priority].push(rf::QueueItem{is_image, 0, data, n_bytes});
+    qp->queues[priority].push(rf::QueueItem{is_image, 0, data, n_bytes, ++qp->id_count});
+}
+
+// Removes the front item from the given queue.
+void rf::truncate_queue(rf::QueuesPackage* qp, const uint8_t priority){
+    if(!qp->queues[priority].empty()){
+        qp->queues[priority].pop();
+    }
+}
+
+// Entirely empties a given queue.
+void rf::empty_queue(rf::QueuesPackage* qp, const uint8_t priority){
+    while(!qp->queues[priority].empty()){
+        qp->queues[priority].pop();
+    }
+}
+
+// Entirely empties all queues.
+void rf::empty_queues(rf::QueuesPackage* qp){
+    for(int i=0; i<qp->n_queues; ++i){
+        while(!qp->queues[i].empty()){
+            qp->queues[i].pop();
+        }
+    }
 }
 
 // Save the contents of queues to a file incase the system crashes.
@@ -157,9 +181,9 @@ rf::QueuesPackage* rf::load_queues(const std::string){
 
 // Deallocate any used dynamic memory.
 // args: QueuesPackage* to have its contents deleted.
-void rf::cleanup(rf::QueuesPackage* sqp){
-    delete[] sqp->queues;
-    delete sqp;
+void rf::cleanup(rf::QueuesPackage* qp){
+    delete[] qp->queues;
+    delete qp;
 }
 
 /*int main(){

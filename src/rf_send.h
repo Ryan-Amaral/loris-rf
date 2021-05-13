@@ -26,6 +26,8 @@ namespace rf{
         std::string data;
         // number of bytes in the item
         uint32_t n_bytes;
+        // unique id of item
+        uint32_t id;
     };
 
     // Package to send to rf_send functions to have all queue data.
@@ -33,9 +35,11 @@ namespace rf{
         // The different queues representing different priorities.
         std::queue<QueueItem>* queues;
         // The number of queues.
-        int n_queues;
+        uint8_t n_queues;
         // Size of chunks to send to ground station.
-        int chunk_size;
+        uint32_t chunk_size;
+        // current id
+        uint32_t id_count;
     };
 
     // Flag specifying whether we are in sending window.
@@ -53,6 +57,15 @@ namespace rf{
     // Adds data to a queue of the specified type, data and priority.
     // args: type, data, priority level, the queue
     void add_to_queue(const bool, const std::string, uint8_t, QueuesPackage*);
+
+    // Removes the front item from the given queue.
+    void truncate_queue(QueuesPackage*, const uint8_t);
+
+    // Entirely empties a given queue.
+    void empty_queue(QueuesPackage*, const uint8_t);
+
+    // Entirely empties all queues.
+    void empty_queues(QueuesPackage*);
 
     // Save the contents of queues to a file incase the system crashes.
     // args: QueuesPackage* to save, string representing the file to save to.
