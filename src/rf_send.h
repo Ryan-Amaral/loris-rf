@@ -69,11 +69,11 @@ namespace rf{
 
     // Save the contents of queues to a file incase the system crashes.
     // args: QueuesPackage* to save, string representing the file to save to.
-    void save_queues(const QueuesPackage*, const std::string);
+    void save_queues_package(const QueuesPackage*, const std::string);
 
     // Load a QueuesPackage* from the given file.
     // args: string representing the file to load from.
-    QueuesPackage* load_queues(const std::string);
+    QueuesPackage* load_queues_package(const std::string);
 
     // Deallocate any used dynamic memory.
     // args: QueuesPackage* to have its contents deleted.

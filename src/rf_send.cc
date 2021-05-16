@@ -168,13 +168,13 @@ void rf::empty_queues(rf::QueuesPackage* qp){
 
 // Save the contents of queues to a file incase the system crashes.
 // args: QueuesPackage* to save, string representing the file to save to.
-void rf::save_queues(const rf::QueuesPackage*, const std::string){
+void rf::save_queues_package(const rf::QueuesPackage*, const std::string){
     // todo implement
 }
 
 // Load a QueuesPackage* from the given file.
 // args: string representing the file to load from.
-rf::QueuesPackage* rf::load_queues(const std::string){
+rf::QueuesPackage* rf::load_queues_package(const std::string){
     // todo implement
     return nullptr;
 }
