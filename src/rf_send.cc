@@ -1,5 +1,6 @@
 #include "rf_send.h"
 
+#include <fstream>
 
 
 // Returns the index of the queue that will be used next for sending.
@@ -118,9 +119,9 @@ void rf::send(void* vqp){
 }
 
 // Adds data to a queue of the specified type, data and priority.
-// args: type, data, priority level, the queue
+// args: type, data, priority level, the queue, item_id ()
 void rf::add_to_queue(const bool is_image, const std::string data, 
-        uint8_t priority, rf::QueuesPackage* qp){
+        uint8_t priority, rf::QueuesPackage* qp, uint32_t item_id){
 
     // change improper priority value
     if(priority < 0){
@@ -139,8 +140,13 @@ void rf::add_to_queue(const bool is_image, const std::string data,
         n_bytes = data.length();
     }
 
+    // select proper id for item
+    if(item_id <= 0){
+        item_id = ++qp->id_count;
+    }
+
     // create the new queue item with cursor at 0
-    qp->queues[priority].push(rf::QueueItem{is_image, 0, data, n_bytes, ++qp->id_count});
+    qp->queues[priority].push(rf::QueueItem{is_image, 0, data, n_bytes, item_id});
 }
 
 // Removes the front item from the given queue.
@@ -168,13 +174,64 @@ void rf::empty_queues(rf::QueuesPackage* qp){
 
 // Save the contents of queues to a file incase the system crashes.
 // args: QueuesPackage* to save, string representing the file to save to.
-void rf::save_queues_package(const rf::QueuesPackage*, const std::string){
-    // todo implement
+// Can't handle new lines in message.
+void rf::save_queues_package(rf::QueuesPackage* qp, const std::string qp_fn){
+
+    std::ofstream qp_file(qp_fn);
+
+    // as items are removed to read them, create temporrary queues to add back
+    std::queue<QueueItem>* queues = new std::queue<rf::QueueItem>[qp->n_queues];
+
+    // first line comma seperated n_queues, chunk_size, id_count
+    qp_file << (int)qp->n_queues << "," << qp->chunk_size << "," << qp->id_count << "\n";
+
+    // each next line is item in corresponding queue comma seperated
+    // queue id, is_image, cursor, n_bytes, id
+    // data in seperate line incase contains delimiter
+    rf::QueueItem q_item;
+    for(int q_id=0; q_id<qp->n_queues; ++q_id){
+        while(!qp->queues[q_id].empty()){
+            // get the next item, write it to file, then remove it
+            q_item = qp->queues[q_id].front();
+
+            // write it to file
+            qp_file << q_id << "," << q_item.is_image << "," << q_item.cursor << "," <<
+                q_item.n_bytes << "," << q_item.id << "\n";
+            qp_file << q_item.data << "\n";
+
+            // save the copy
+            queues[q_id].push(rf::QueueItem{q_item.is_image, q_item.cursor, 
+                q_item.data, q_item.n_bytes, q_item.id});
+
+            qp->queues[q_id].pop();
+        }
+    }
+
+    qp_file.close();
+
+    // read back from the copy into qp
+    for(int q_id=0; q_id<qp->n_queues; ++q_id){
+        while(!queues[q_id].empty()){
+            q_item = queues[q_id].front();
+            qp->queues[q_id].push(rf::QueueItem{q_item.is_image, q_item.cursor, 
+                q_item.data, q_item.n_bytes, q_item.id});
+            queues[q_id].pop();
+        }
+    }
 }
 
 // Load a QueuesPackage* from the given file.
 // args: string representing the file to load from.
-rf::QueuesPackage* rf::load_queues_package(const std::string){
+rf::QueuesPackage* rf::load_queues_package(const std::string qp_fn){
+
+    
+
+    // first line comma seperated n_queues, chunk_size, id_count
+
+    // each next line is item in corresponding queue comma seperated
+    // queue id, is_image, cursor, data, n_bytes, id
+
+
     // todo implement
     return nullptr;
 }

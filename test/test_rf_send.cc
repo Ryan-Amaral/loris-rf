@@ -27,7 +27,7 @@ bool test_add_to_queue(){
 
     printf("Testing add image to queue.\n");
     printf("%d\n", qp->id_count);
-    rf::add_to_queue(true, "image.txt", 2, qp);
+    rf::add_to_queue(true, "image.txt", 2, qp, 0);
     printf("%d\n", qp->id_count);
     if(qp->queues[2].front().is_image == false){
         printf("Error: Image didn't save as image.\n");
@@ -40,7 +40,7 @@ bool test_add_to_queue(){
 
     printf("Testing add text to queue.\n");
     printf("%d\n", qp->id_count);
-    rf::add_to_queue(false, "test_message", 0, qp);
+    rf::add_to_queue(false, "test_message", 0, qp, 0);
     printf("%d\n", qp->id_count);
     if(qp->queues[0].front().is_image == true){
         printf("Error: Text didn't save as text.\n");
@@ -67,15 +67,15 @@ bool test_scenario_1(){
 
     printf("Adding things to queues.\n");
 
-    rf::add_to_queue(true, "image1.txt", 0, qp);
-    rf::add_to_queue(true, "image2.txt", 1, qp);
-    rf::add_to_queue(true, "image3.txt", 2, qp);
-    rf::add_to_queue(true, "image4.txt", 2, qp);
+    rf::add_to_queue(true, "image1.txt", 0, qp, 0);
+    rf::add_to_queue(true, "image2.txt", 1, qp, 0);
+    rf::add_to_queue(true, "image3.txt", 2, qp, 0);
+    rf::add_to_queue(true, "image4.txt", 2, qp, 0);
 
-    rf::add_to_queue(false, "message 1", 0, qp);
-    rf::add_to_queue(false, "message 2", 1, qp);
-    rf::add_to_queue(false, "message 3", 2, qp);
-    rf::add_to_queue(false, "message 4", 2, qp);
+    rf::add_to_queue(false, "message 1", 0, qp, 0);
+    rf::add_to_queue(false, "message 2", 1, qp, 0);
+    rf::add_to_queue(false, "message 3", 2, qp, 0);
+    rf::add_to_queue(false, "message 4", 2, qp, 0);
 
     printf("Queue 0 expected: %d, actual: %ld.\n", 2, qp->queues[0].size());
     printf("Queue 1 expected: %d, actual: %ld.\n", 2, qp->queues[1].size());
@@ -83,7 +83,7 @@ bool test_scenario_1(){
     printf("Queue 3 expected: %d, actual: %ld.\n", 0, qp->queues[3].size());
     printf("Queue 4 expected: %d, actual: %ld.\n", 0, qp->queues[4].size());
 
-    printf("Testing removals.\n");
+    printf("\nTesting removals.\n");
 
     rf::truncate_queue(qp, 0);
     rf::truncate_queue(qp, 2);
@@ -95,7 +95,7 @@ bool test_scenario_1(){
     printf("Queue 3 expected: %d, actual: %ld.\n", 0, qp->queues[3].size());
     printf("Queue 4 expected: %d, actual: %ld.\n", 0, qp->queues[4].size());
 
-    printf("Testing complete removal.\n");
+    printf("\nTesting complete removal.\n");
 
     rf::empty_queues(qp);
 
@@ -105,26 +105,32 @@ bool test_scenario_1(){
     printf("Queue 3 expected: %d, actual: %ld.\n", 0, qp->queues[3].size());
     printf("Queue 4 expected: %d, actual: %ld.\n", 0, qp->queues[4].size());
 
-    printf("Adding things to queues.\n");
+    printf("\nAdding things to queues.\n");
 
-    rf::add_to_queue(true, "image1.txt", 0, qp);
-    rf::add_to_queue(true, "image2.txt", 1, qp);
-    rf::add_to_queue(true, "image3.txt", 2, qp);
-    rf::add_to_queue(true, "image4.txt", 2, qp);
+    rf::add_to_queue(true, "image1.txt", 0, qp, 0);
+    rf::add_to_queue(true, "image2.txt", 1, qp, 0);
+    rf::add_to_queue(true, "image3.txt", 2, qp, 0);
+    rf::add_to_queue(true, "image4.txt", 2, qp, 0);
 
-    rf::add_to_queue(false, "message 1", 0, qp);
-    rf::add_to_queue(false, "message 2", 1, qp);
-    rf::add_to_queue(false, "message 3", 2, qp);
-    rf::add_to_queue(false, "message 4", 2, qp);
+    rf::add_to_queue(false, "message 1", 0, qp, 0);
+    rf::add_to_queue(false, "message 2", 1, qp, 0);
+    rf::add_to_queue(false, "message 3", 2, qp, 0);
+    rf::add_to_queue(false, "message 4", 2, qp, 0);
 
-    printf("Testing saving to file.\n");
+    printf("\nTesting saving to file.\n");
 
     rf::save_queues_package(qp, "qp.txt");
+
+    printf("Queue 0 expected: %d, actual: %ld.\n", 2, qp->queues[0].size());
+    printf("Queue 1 expected: %d, actual: %ld.\n", 2, qp->queues[1].size());
+    printf("Queue 2 expected: %d, actual: %ld.\n", 4, qp->queues[2].size());
+    printf("Queue 3 expected: %d, actual: %ld.\n", 0, qp->queues[3].size());
+    printf("Queue 4 expected: %d, actual: %ld.\n", 0, qp->queues[4].size());
 
     // clear memory
     rf::cleanup(qp);
 
-    printf("Testing loading from file.\n");
+    printf("\nTesting loading from file.\n");
 
     rf::QueuesPackage* qp2 = rf::load_queues_package("qp.txt");
 

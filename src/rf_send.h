@@ -55,8 +55,8 @@ namespace rf{
     void send(void*);
 
     // Adds data to a queue of the specified type, data and priority.
-    // args: type, data, priority level, the queue
-    void add_to_queue(const bool, const std::string, uint8_t, QueuesPackage*);
+    // args: type, data, priority level, the queue, queue item id.
+    void add_to_queue(const bool, const std::string, uint8_t, QueuesPackage*, uint32_t);
 
     // Removes the front item from the given queue.
     void truncate_queue(QueuesPackage*, const uint8_t);
@@ -69,7 +69,7 @@ namespace rf{
 
     // Save the contents of queues to a file incase the system crashes.
     // args: QueuesPackage* to save, string representing the file to save to.
-    void save_queues_package(const QueuesPackage*, const std::string);
+    void save_queues_package(QueuesPackage*, const std::string);
 
     // Load a QueuesPackage* from the given file.
     // args: string representing the file to load from.
