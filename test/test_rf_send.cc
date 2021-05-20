@@ -136,6 +136,12 @@ bool test_scenario_1(){
 
     printf("Check values.\n");
 
+    printf("Queue 0 expected: %d, actual: %ld.\n", 2, qp2->queues[0].size());
+    printf("Queue 1 expected: %d, actual: %ld.\n", 2, qp2->queues[1].size());
+    printf("Queue 2 expected: %d, actual: %ld.\n", 4, qp2->queues[2].size());
+    printf("Queue 3 expected: %d, actual: %ld.\n", 0, qp2->queues[3].size());
+    printf("Queue 4 expected: %d, actual: %ld.\n", 0, qp2->queues[4].size());
+
     rf::cleanup(qp2);
 
     return true;

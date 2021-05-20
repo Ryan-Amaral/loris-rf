@@ -1,6 +1,7 @@
 #include "rf_send.h"
 
 #include <fstream>
+#include <sstream>
 
 
 // Returns the index of the queue that will be used next for sending.
@@ -224,16 +225,98 @@ void rf::save_queues_package(rf::QueuesPackage* qp, const std::string qp_fn){
 // args: string representing the file to load from.
 rf::QueuesPackage* rf::load_queues_package(const std::string qp_fn){
 
-    
+    // point to file to read from
+    std::ifstream qp_file(qp_fn);
+
+    // temporary storage of each line
+    std::string line;
+    // part of line to convert to value
+    std::string temp;
+
+    // help track commas
+    std::size_t comma_pos;
+    std::size_t old_comma_pos;
+
+    // the new qp to be created
+    rf::QueuesPackage* qp = new rf::QueuesPackage;
+
+    // get line as string stream
+    std::getline(qp_file, line);
 
     // first line comma seperated n_queues, chunk_size, id_count
+    // get n_queues
+    comma_pos = line.find(",");
+    temp = line.substr(0, comma_pos);
+    qp->n_queues = std::stoi(temp);
+
+    // get chunk_size
+    old_comma_pos = comma_pos+1;
+    comma_pos = line.find(",", old_comma_pos);
+    temp = line.substr(old_comma_pos, comma_pos-old_comma_pos);
+    qp->chunk_size = std::stoi(temp);
+
+    // get id_count
+    old_comma_pos = comma_pos+1;
+    comma_pos = line.find(",", old_comma_pos);
+    temp = line.substr(old_comma_pos, comma_pos-old_comma_pos);
+    qp->id_count = std::stoi(temp);
+
+    // construct the queues
+    qp->queues = new std::queue<rf::QueueItem>[qp->n_queues];
 
     // each next line is item in corresponding queue comma seperated
-    // queue id, is_image, cursor, data, n_bytes, id
+    // queue_id, is_image, cursor, n_bytes, id
+    // data in seperate line incase contains delimiter
+
+    // for what queue the item belongs to
+    uint8_t queue_id;
+    bool is_image;
+    uint32_t cursor;
+    uint32_t n_bytes;
+    uint32_t id;
+    while(std::getline(qp_file, line)){
+        // extract queue id, is_image, cursor, n_bytes, and id first
+        // first queue_id
+        comma_pos = line.find(",");
+        temp = line.substr(0, comma_pos);
+        queue_id = std::stoi(temp);
+
+        // get is_image
+        old_comma_pos = comma_pos+1;
+        comma_pos = line.find(",", old_comma_pos);
+        temp = line.substr(old_comma_pos, comma_pos-old_comma_pos);
+        std::istringstream(temp) >> is_image;
+
+        // get cursor
+        old_comma_pos = comma_pos+1;
+        comma_pos = line.find(",", old_comma_pos);
+        temp = line.substr(old_comma_pos, comma_pos-old_comma_pos);
+        cursor = std::stoi(temp);
+
+        // get n_bytes
+        old_comma_pos = comma_pos+1;
+        comma_pos = line.find(",", old_comma_pos);
+        temp = line.substr(old_comma_pos, comma_pos-old_comma_pos);
+        n_bytes = std::stoi(temp);
+
+        // get id
+        old_comma_pos = comma_pos+1;
+        comma_pos = line.find(",", old_comma_pos);
+        temp = line.substr(old_comma_pos, comma_pos-old_comma_pos);
+        id = std::stoi(temp);
 
 
-    // todo implement
-    return nullptr;
+        // then get another line to get data
+        std::getline(qp_file, line);
+
+        // add it all to the queue now
+        qp->queues[queue_id].push(rf::QueueItem{is_image, cursor, 
+                line, n_bytes, id});
+    }
+
+    qp_file.close();
+
+    return qp;
 }
 
 // Deallocate any used dynamic memory.
