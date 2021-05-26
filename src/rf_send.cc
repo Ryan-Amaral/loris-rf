@@ -16,22 +16,8 @@ uint8_t next_queue_index(const std::queue<rf::QueueItem> queues[], const uint8_t
     return -1;
 }
 
-// Gets the next chunk of data from the queue_item, updates cursor.
-uint8_t* get_chunk(rf::QueueItem* queue_item, uint32_t chunk_size){
-
-    // if text data its simple
-
-    // update cursor
-
-    // call helper to get image data
-
-    
-
-    return nullptr;
-}
-
 // Opens and reads the image to get the chunk from it.
-uint8_t* get_image_chunk(rf::QueueItem* queue_item, uint32_t chunk_size){
+void get_image_chunk(rf::QueueItem* queue_item, uint32_t chunk_size, uint8_t* buffer){
 
     // open image
 
@@ -41,7 +27,17 @@ uint8_t* get_image_chunk(rf::QueueItem* queue_item, uint32_t chunk_size){
 
     // update cursor
 
-    return nullptr;
+}
+
+// Gets the next chunk of data from the queue_item, updates cursor.
+void get_chunk(rf::QueueItem* queue_item, uint32_t chunk_size, uint8_t* chunk){
+
+    // if text data its simple
+
+    // update cursor
+
+    // call helper to get image data\
+
 }
 
 // Sends the chunk off to the low level sending firmware.
@@ -83,6 +79,9 @@ void rf::send(void* vqp){
 
     rf::QueuesPackage* qp = (rf::QueuesPackage*)vqp;
 
+    // reuse same chunk arrary
+    uint8_t* chunk = new uint8_t[qp->chunk_size];
+
     // enable send mode and run until stopped by module
     rf::send_mode = true;
     while(send_mode){
@@ -98,7 +97,7 @@ void rf::send(void* vqp){
         uint32_t o_cursor = queue_item->cursor;
 
         // chunk is an array of bytes (uint8_t's) to send
-        uint8_t* chunk = get_chunk(queue_item, qp->chunk_size);
+        get_chunk(queue_item, qp->chunk_size, chunk);
         // get size of the current chunk
         uint32_t cur_chunk_len = queue_item->cursor - o_cursor;
 
@@ -117,6 +116,8 @@ void rf::send(void* vqp){
             qp->queues[queue_index].pop();
         }
     }
+
+    delete[] chunk;
 }
 
 // Adds data to a queue of the specified type, data and priority.
